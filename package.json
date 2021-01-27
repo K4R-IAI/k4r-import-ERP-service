@@ -1,0 +1,35 @@
+{
+  "name": "k4r-import-erp-service",
+  "version": "1.0.0",
+  "description": "RESTful Service imports ERP data in XML IDOC form and and converts to JSON and Sends to Digital Twin",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/K4R-IAI/k4r-import-ERP-service.git"
+  },
+  "keywords": [
+    "ERP",
+    "import",
+    "IDOC",
+    "xml",
+    "json",
+    "xslt"
+  ],
+  "author": "Dr. Gautam Dange",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/K4R-IAI/k4r-import-ERP-service/issues"
+  },
+  "homepage": "https://github.com/K4R-IAI/k4r-import-ERP-service#readme",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "express-fileupload": "^1.2.1",
+    "nodemon": "^2.0.7",
+    "swagger-jsdoc": "^6.0.1",
+    "swagger-ui-express": "^4.1.6"
+  }
+}
