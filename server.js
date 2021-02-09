@@ -22,6 +22,7 @@ app.use(bodyParser.xml({limit: '50mb'},{
 
 const port = 3000;
 const host = '0.0.0.0';
+
 app.use(fileupload());
 
 
@@ -51,8 +52,6 @@ const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use("/api-docs",swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 
-
-  
 /**
  * @swagger
  * /getLastXMLEntry:
@@ -93,7 +92,8 @@ app.get('/getLastXMLEntry', (req, res) =>
  *      '200':
  *        description: A successful response
  */
-app.post('/xml', function (req, res, body) {
+app.post('/xml', function (req, res, body) 
+{
 
   fext =0;
   var xmlIDOC = "idocdata" + fext+".xml";
@@ -111,51 +111,7 @@ app.post('/xml', function (req, res, body) {
   fs.writeFileSync(xmlIDOC, xmll); 
   res.send(xmll.toString());
 });
-
-
-
-    
-  /*
-    {
-      "gtin": "4010355278234",
-      "length": "28",
-      "depth": "40",
-      "height": "115",
-      "name": "100001493",
-      "LAYGR": "YLB002",
-      "SORF1": "0000001107",
-      "LAYVR": "YLB1LAYOUT",
-      "MELAY": "PCE",
-      "SHELF": "0000000003",
-      "FACIN": "1.000",
-      "LMVER": "0000",
-      "FRONT": " 6.000",
-      "VERAB": "20200324",
-      "VERBI": "99991231",
-      "MAXB": " 10.000",
-      "PRABE": " 8.000"
-    },
-
-
-  var tables = [
-      { "art":"A","count":"0","name":"name1","ean":"802.0079.127","marker":"null","stammkost":"A","tablename":"IWEO_IWBB_01062015" },
-      { "art":"A","count":"0","name":"2","ean":"657.7406.559","marker":"null","stammkost":"A","tablename":"IWEO_IWBB_02062015" }
-  ];
-
-  */
-
-
-  //JsonBackup.forEach(function(traverse) {
-  //    var jsonObj = traverse;
-   //   console.log(traverse);
-  //});
-
-
-
-
-
-
-
+  
 
 app.listen(port);
 console.log(`Running on http://${host}:${port}`);
