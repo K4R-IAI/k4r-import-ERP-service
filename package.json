@@ -26,10 +26,13 @@
   "homepage": "https://github.com/K4R-IAI/k4r-import-ERP-service#readme",
   "dependencies": {
     "body-parser": "^1.19.0",
+    "body-parser-xml": "^2.0.1",
     "express": "^4.17.1",
     "express-fileupload": "^1.2.1",
     "nodemon": "^2.0.7",
+    "npm": "^7.5.3",
     "swagger-jsdoc": "^6.0.1",
-    "swagger-ui-express": "^4.1.6"
+    "swagger-ui-express": "^4.1.6",
+    "xmldom": "^0.4.0"
   }
 }
