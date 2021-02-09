@@ -1,14 +1,33 @@
-const express = require('express')
-const fs =  require('fs');
-const app = express();
-var fileupload = require('express-fileupload') ;
+const express 		  = require('express');
+const bodyParser 	  = require('body-parser');
+const fs 		        = require('fs');
+const fileupload 	  = require('express-fileupload') ;
+const swaggerJsDoc 	= require('swagger-jsdoc');
+const swaggerUi 	  = require('swagger-ui-express');
+var libxslt 		    = require('libxslt');
+var DOMParser       = new (require('xmldom')).DOMParser({ normalizeTags: { default: false } });
+require("body-parser-xml")(bodyParser);
+var xml2js          = require('xml2js');
+var builder         = new xml2js.Builder({ standalone: { default: false } });
+var app             = express();
+//Options of body-parser-xml module
 
-const swaggerJsDoc = require('swagger-jsdoc');
-const swaggerUi = require('swagger-ui-express');
+app.use(bodyParser.xml({limit: '50mb'},{
+    xmlParseOptions: {
+        normalize: false,     // Trim whitespace inside text nodes
+        normalizeTags: false, // Transform tags to lowercase
+        explicitArray: false // Only put nodes in array if >1
+    }
+}));
+
 
 const port = 3000;
 const host = '0.0.0.0';
+
 app.use(fileupload());
+
+
+
 
 //Extended:http://swagger.io/specification/#infoObject
 const swaggerOptions = {
@@ -16,8 +35,8 @@ const swaggerOptions = {
     {
         info:
         {
-            title:'Simulation API',
-            description:'planogram simulation according to shelves data given',
+            title:'ImportService',
+            description:'EPR import Service with XSL-Translation',
             contact:
             {
                 name : "Dr. Gautam Dange"
@@ -26,7 +45,7 @@ const swaggerOptions = {
         }
     },
     //['.routes/*.js']
-    apis:["app.js"]
+    apis:["server.js"]
 }
 
 
@@ -35,69 +54,6 @@ app.use("/api-docs",swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 
 
-// Routes
-/**
- * @swagger
- * /customers:
- *  get:
- *    description: Use to request all customers
- *    responses:
- *      '200':
- *        description: A successful response
- */
-app.get("/customers", (req, res) => {
-    res.status(200).send("Customer results");
-  });
-
-app.get('/runJava', (req, res) => 
-{
-    let jarFile     = './simulator.jar'
-    let runCommand  = '/usr/bin/java -jar ' + jarFile 
-    var exec = require('child_process').exec
-    child = exec(runCommand, function (error, stdout, stderr) 
-    {
-        if(error !== null) 
-        {
-            console.log('exec error: ' + error);
-        } 
-        else 
-        {
-            console.log('stdout: ' + stdout);
-        }
-    })
-    createfile();
-    res.send("jar java executed !")
-});
-
-/**
- * @swagger
- * /setshelves:
- *  post:
- *    description: set up new shelves environment
- *    responses:
- *      '200':
- *        description: Shelf specifications inserted successfully
- */
-app.post("/setshelves",function(req,res,next)
-{
-    writefile(req,res);
-    runjar(req,res);
-})
-
-
-/**
- * @swagger
- * /getproducts:
- *  get:
- *    description: Use to request all products
- *    responses:
- *      '200':
- *        description: A successful response
- */
-app.get("/getproducts",function(req,res,next)
-{
-   sendfile(req,res);
-})
   
 /**
  * @swagger
@@ -128,10 +84,42 @@ app.get('/getLastXMLEntry', (req, res) =>
   res.send(data);
 })
 
+
+
+/**
+ * @swagger
+ * /xml:
+ *  post:
+ *    description: Upload new xml file 
+ *    responses:
+ *      '200':
+ *        description: A successful response
+ */
+app.post('/xml', function (req, res, body) {
+
+  fext =0;
+  var xmlIDOC = "idocdata" + fext+".xml";
+  while(fs.existsSync('./'+xmlIDOC))
+  {
+    fext= fext + 1;
+    xmlIDOC = "idocdata" + fext+".xml";
+  }
+  //Parsing Request.Body
+  var document = DOMParser.parseFromString(
+      builder.buildObject(req.body).toString()
+  );
+  xmlIDOC = "idocdata" + fext+".xml";
+  var xmll =   builder.buildObject(req.body).toString()    ;
+  fs.writeFileSync(xmlIDOC, xmll); 
+  res.send(xmll.toString());
+});
+
+
+
 /**
  * @swagger
  * /xmlIDOC:
- *  get:
+ *  post:
  *    description: Upload new xml file 
  *    responses:
  *      '200':
@@ -140,6 +128,7 @@ app.get('/getLastXMLEntry', (req, res) =>
 app.post('/xmlIDOC', (req, res) => 
 {
 
+  var JsonBackup;
   fext =0;
   var xmlIDOC = "idocdata" + fext+".xml";
   while(fs.existsSync('./'+xmlIDOC))
@@ -150,50 +139,137 @@ app.post('/xmlIDOC', (req, res) =>
 
   const xmll = req.body.xmlIDOC;
   xmlIDOC = "idocdata" + fext+".xml";
-                                             
-  fs.writeFileSync(xmlIDOC, xmll);
+  jsondoc = "idocdata" + fext+".json";  
+  txtdoc =    "idocdata" + fext+".txt";                   
+  fs.writeFileSync(xmlIDOC, xmll); 
 
-  res.send('New xml IDOC content inserted to the platform k4r');
+
+  var xmlString  = fs.readFileSync('./'+'WBBDLD_00016300.xml.xml',    'utf8');
+  var xsltString = fs.readFileSync('./'+'xml_to_json_SandboxData.txt', 'utf8');
+  libxslt.parse(xsltString, function(err, stylesheet){
+
+  var params = {
+    MyParam: 'my value'
+  };
+
+  stylesheet.apply(xmll, params, function(err, ProductsListJSON )
+  {
+
+   // To send json data back to the client
+   const jsondata = JSON.parse(ProductsListJSON);
+   res.send(jsondata);
+
+
+   // To write to the file only .. do not use this variable in manipulation
+   const data = JSON.stringify(jsondata);
+   fs.writeFileSync(jsondoc,data );
+
+    var productList = jsondata.products;
+
+
+    for(var i = 0; i < productList.length; i++)
+    {
+      var product = productList[i];
+      console.log(product.gtin);
+    }
+
+
+   //for (product in productList) 
+   //{
+    //console.log(product.gtin);
+  //};
+
+
+
+
+
+
+
+
+   
+  });  
+  });
+  
+    
+  /*
+    {
+      "gtin": "4010355278234",
+      "length": "28",
+      "depth": "40",
+      "height": "115",
+      "name": "100001493",
+      "LAYGR": "YLB002",
+      "SORF1": "0000001107",
+      "LAYVR": "YLB1LAYOUT",
+      "MELAY": "PCE",
+      "SHELF": "0000000003",
+      "FACIN": "1.000",
+      "LMVER": "0000",
+      "FRONT": " 6.000",
+      "VERAB": "20200324",
+      "VERBI": "99991231",
+      "MAXB": " 10.000",
+      "PRABE": " 8.000"
+    },
+
+
+  var tables = [
+      { "art":"A","count":"0","name":"name1","ean":"802.0079.127","marker":"null","stammkost":"A","tablename":"IWEO_IWBB_01062015" },
+      { "art":"A","count":"0","name":"2","ean":"657.7406.559","marker":"null","stammkost":"A","tablename":"IWEO_IWBB_02062015" }
+  ];
+
+  */
+
+
+  //JsonBackup.forEach(function(traverse) {
+  //    var jsonObj = traverse;
+   //   console.log(traverse);
+  //});
+
+
+
+
+
+
+
+
+
 });
 
-
-
-var writefile = function(req,res)
-{
-
-   const file = req.files.shelvesMapping;
-   file.mv("./files/json/"+file.name,function(err,result){if(err) throw err;})
-}
-
-var runjar= function(req,res)
-{
-    let jarFile     = './simulator.jar'
-    let runCommand  = '/usr/bin/java -jar ' + jarFile 
-    var exec = require('child_process').exec
-    child = exec(runCommand, function (error, stdout, stderr) 
-    {
-        if(error !== null) 
-        {
-            console.log('exec error: ' + error);
-        } 
-        else 
-        {
-            console.log('stdout: ' + stdout);
-        }
-    })
-    res.send("Shelves configured in the Simulator, so, product simulation can be requested !")
-}
-
-var sendfile= function(req,res)
-{
-    let filee = fs.readFileSync('./files/json/products.json');   
-    let jsonfile = JSON.parse(filee);
-    res.send(jsonfile)
-}
 
 
 
 
 app.listen(port);
 console.log(`Running on http://${host}:${port}`);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
