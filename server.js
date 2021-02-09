@@ -4,7 +4,6 @@ const fs 		        = require('fs');
 const fileupload 	  = require('express-fileupload') ;
 const swaggerJsDoc 	= require('swagger-jsdoc');
 const swaggerUi 	  = require('swagger-ui-express');
-var libxslt 		    = require('libxslt');
 var DOMParser       = new (require('xmldom')).DOMParser({ normalizeTags: { default: false } });
 require("body-parser-xml")(bodyParser);
 var xml2js          = require('xml2js');
@@ -23,7 +22,6 @@ app.use(bodyParser.xml({limit: '50mb'},{
 
 const port = 3000;
 const host = '0.0.0.0';
-
 app.use(fileupload());
 
 
@@ -116,80 +114,6 @@ app.post('/xml', function (req, res, body) {
 
 
 
-/**
- * @swagger
- * /xmlIDOC:
- *  post:
- *    description: Upload new xml file 
- *    responses:
- *      '200':
- *        description: A successful response
- */
-app.post('/xmlIDOC', (req, res) => 
-{
-
-  var JsonBackup;
-  fext =0;
-  var xmlIDOC = "idocdata" + fext+".xml";
-  while(fs.existsSync('./'+xmlIDOC))
-  {
-    fext= fext + 1;
-    xmlIDOC = "idocdata" + fext+".xml";
-  }
-
-  const xmll = req.body.xmlIDOC;
-  xmlIDOC = "idocdata" + fext+".xml";
-  jsondoc = "idocdata" + fext+".json";  
-  txtdoc =    "idocdata" + fext+".txt";                   
-  fs.writeFileSync(xmlIDOC, xmll); 
-
-
-  var xmlString  = fs.readFileSync('./'+'WBBDLD_00016300.xml.xml',    'utf8');
-  var xsltString = fs.readFileSync('./'+'xml_to_json_SandboxData.txt', 'utf8');
-  libxslt.parse(xsltString, function(err, stylesheet){
-
-  var params = {
-    MyParam: 'my value'
-  };
-
-  stylesheet.apply(xmll, params, function(err, ProductsListJSON )
-  {
-
-   // To send json data back to the client
-   const jsondata = JSON.parse(ProductsListJSON);
-   res.send(jsondata);
-
-
-   // To write to the file only .. do not use this variable in manipulation
-   const data = JSON.stringify(jsondata);
-   fs.writeFileSync(jsondoc,data );
-
-    var productList = jsondata.products;
-
-
-    for(var i = 0; i < productList.length; i++)
-    {
-      var product = productList[i];
-      console.log(product.gtin);
-    }
-
-
-   //for (product in productList) 
-   //{
-    //console.log(product.gtin);
-  //};
-
-
-
-
-
-
-
-
-   
-  });  
-  });
-  
     
   /*
     {
@@ -228,13 +152,6 @@ app.post('/xmlIDOC', (req, res) =>
 
 
 
-
-
-
-
-
-
-});
 
 
 
