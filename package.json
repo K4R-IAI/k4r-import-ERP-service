@@ -29,10 +29,14 @@
     "body-parser-xml": "^2.0.1",
     "express": "^4.17.1",
     "express-fileupload": "^1.2.1",
+    "libxslt": "^0.9.0",
     "nodemon": "^2.0.7",
-    "npm": "^7.5.3",
-    "swagger-jsdoc": "^6.0.1",
+    "npm": "^7.6.3",
+    "request": "^2.88.2",
+    "swagger-jsdoc": "^6.1.0",
     "swagger-ui-express": "^4.1.6",
+    "xml-js": "^1.6.11",
+    "xml2json": "^0.12.0",
     "xmldom": "^0.4.0"
   }
 }

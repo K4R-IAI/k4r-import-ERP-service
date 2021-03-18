@@ -4,5 +4,5 @@ RUN apt-get update
 WORKDIR /app 
 COPY . /app 
 RUN npm install 
-EXPOSE 3000
-ENTRYPOINT ["npm","start"]
+EXPOSE 3567
+ENTRYPOINT ["node","server.js"]
